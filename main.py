@@ -67,28 +67,27 @@ class HomeworkFramework(BaseHTTPRequestHandler):
         return storage_dir
 
 
-
     @staticmethod
     def save_data_from_form(data):
         data_parse = urllib.parse.unquote_plus(data.decode())
         try:
-            parse_dict = {key: value for key, value in [el.split('=') for el in data_parse.split('&')]}
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-            data_dict = {}
-          
-            data_json_file = os.path.join('storage/data.json')
-            if not os.path.exists(data_json_file):
-                with open('storage/data.json', 'w') as f:
-                    json.dump({},f)                
-            data_dict[timestamp] = parse_dict
-            
-            with open('storage/data.json', 'a',encoding='UTF-8')as file:
-                json.dump(data_dict,file, ensure_ascii=False,indent=4)
-        except ValueError as err:
-            logging.error(err)
-        except OSError as err:
-            logging.error(err)
-        
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+            new_data = {current_time: {key: value for key, value in [el.split('=') for el in data_parse.split('&')]}}
+            file_path = "storage/data.json"
+            try:
+                with open(file_path, "r", encoding="utf-8") as file:  
+                    existing_data = json.load(file)
+            except FileNotFoundError:
+                existing_data = {}
+            except ValueError:
+                existing_data = {}
+            existing_data.update(new_data)
+            with open(file_path, "w", encoding="utf-8") as file:  # повністю перезатираєм дані
+                json.dump(existing_data, file, ensure_ascii=False, indent=2)
+        except ValueError as error:
+            logging.error(f"ValueError: {error}")
+        except OSError as oser:
+            logging.error(f"OSError: {oser}")
 
 
     @staticmethod
